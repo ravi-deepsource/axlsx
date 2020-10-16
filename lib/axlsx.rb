@@ -1,4 +1,3 @@
-# encoding: UTF-8
 require 'htmlentities'
 require 'axlsx/version.rb'
 require 'mimemagic'
@@ -10,7 +9,7 @@ require 'axlsx/util/accessors.rb'
 require 'axlsx/util/serialized_attributes'
 require 'axlsx/util/options_parser'
 # to be included with parsable intitites.
-#require 'axlsx/util/parser.rb'
+# require 'axlsx/util/parser.rb'
 require 'axlsx/util/mime_type_utils'
 
 require 'axlsx/stylesheet/styles.rb'
@@ -23,19 +22,19 @@ require 'axlsx/rels/relationships.rb'
 require 'axlsx/drawing/drawing.rb'
 require 'axlsx/workbook/workbook.rb'
 require 'axlsx/package.rb'
-#required gems
+# required gems
 require 'nokogiri'
 require 'zip'
 
-#core dependencies
+# core dependencies
 require 'bigdecimal'
 require 'time'
 
-#if object does not have this already, I am borrowing it from active_support.
+# if object does not have this already, I am borrowing it from active_support.
 # I am a very big fan of activesupports instance_values method, but do not want to require nor include the entire
 # library just for this one method.
-if !Object.respond_to?(:instance_values)
-  Object.send :public  # patch for 1.8.7 as it uses private scope
+unless Object.respond_to?(:instance_values)
+  Object.send :public # patch for 1.8.7 as it uses private scope
   Object.send :define_method, :instance_values do
     Hash[instance_variables.map { |name| [name.to_s[1..-1], instance_variable_get(name)] }]
   end
@@ -48,10 +47,10 @@ end
 # Best of all, you can validate your xlsx file before serialization so you know
 # for sure that anything generated is going to load on your client's machine.
 module Axlsx
-
   # determines the cell range for the items provided
-  def self.cell_range(cells, absolute=true)
-    return "" unless cells.first.is_a? Cell
+  def self.cell_range(cells, absolute = true)
+    return '' unless cells.first.is_a? Cell
+
     cells = sort_cells(cells)
     reference = "#{cells.first.reference(absolute)}:#{cells.last.reference(absolute)}"
     if absolute
@@ -70,7 +69,7 @@ module Axlsx
     cells.sort { |x, y| [x.index, x.row.row_index] <=> [y.index, y.row.row_index] }
   end
 
-  #global reference html entity encoding
+  # global reference html entity encoding
   # @return [HtmlEntities]
   def self.coder
     @@coder ||= ::HTMLEntities.new
@@ -79,11 +78,12 @@ module Axlsx
   # returns the x, y position of a cell
   def self.name_to_indices(name)
     raise ArgumentError, 'invalid cell name' unless name.size > 1
+
     # capitalization?!?
-    v = name[/[A-Z]+/].reverse.chars.reduce({:base=>1, :i=>0}) do  |val, c|
-      val[:i] += ((c.bytes.first - 64) * val[:base]); val[:base] *= 26; val
+    v = name[/[A-Z]+/].reverse.chars.each_with_object({ base: 1, i: 0 }) do |c, val|
+      val[:i] += ((c.bytes.first - 64) * val[:base]); val[:base] *= 26
     end
-    [v[:i]-1, ((name[/[1-9][0-9]*/]).to_i)-1]
+    [v[:i] - 1, (name[/[1-9][0-9]*/]).to_i - 1]
   end
 
   # converts the column index into alphabetical values.
@@ -91,7 +91,7 @@ module Axlsx
   # @return [String]
   def self.col_ref(index)
     chars = ''
-    while index >= 26 do
+    while index >= 26
       index, char = index.divmod(26)
       chars.prepend((char + 65).chr)
       index -= 1
@@ -104,7 +104,7 @@ module Axlsx
   # @example Relative Cell Reference
   #   ws.rows.first.cells.first.r #=> "A1"
   def self.cell_r(c_index, r_index)
-    col_ref(c_index) << (r_index+1).to_s
+    col_ref(c_index) << (r_index + 1).to_s
   end
 
   # Creates an array of individual cell references based on an excel reference range.
@@ -112,8 +112,8 @@ module Axlsx
   # @return [Array]
   def self.range_to_a(range)
     range.match(/^(\w+?\d+)\:(\w+?\d+)$/)
-    start_col, start_row = name_to_indices($1)
-    end_col,   end_row   = name_to_indices($2)
+    start_col, start_row = name_to_indices(Regexp.last_match(1))
+    end_col,   end_row   = name_to_indices(Regexp.last_match(2))
     (start_row..end_row).to_a.map do |row_num|
       (start_col..end_col).to_a.map do |col_num|
         cell_r(col_num, row_num)
@@ -124,10 +124,10 @@ module Axlsx
   # performs the increadible feat of changing snake_case to CamelCase
   # @param [String] s The snake case string to camelize
   # @return [String]
-  def self.camel(s="", all_caps = true)
+  def self.camel(s = '', all_caps = true)
     s = s.to_s
     s = s.capitalize if all_caps
-    s.gsub(/_(.)/){ $1.upcase }
+    s.gsub(/_(.)/) { Regexp.last_match(1).upcase }
   end
 
   # returns the provided string with all invalid control charaters

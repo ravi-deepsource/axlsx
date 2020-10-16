@@ -1,10 +1,8 @@
-# encoding: UTF-8
 module Axlsx
   # a Pic object represents an image in your worksheet
   # Worksheet#add_image is the recommended way to manage images in your sheets
   # @see Worksheet#add_image
   class Pic
-
     include Axlsx::OptionsParser
 
     # Creates a new Pic(ture) object
@@ -16,7 +14,7 @@ module Axlsx
     # @option options [Integer] :width
     # @option options [Integer] :height
     # @option options [Float] :opacity - set the picture opacity, accepts a value between 0.0 and 1.0
-    def initialize(anchor, options={})
+    def initialize(anchor, options = {})
       @anchor = anchor
       @hyperlink = nil
       @anchor.drawing.worksheet.workbook.images << self
@@ -24,11 +22,11 @@ module Axlsx
       start_at(*options[:start_at]) if options[:start_at]
       yield self if block_given?
       @picture_locking = PictureLocking.new(options)
-      @opacity = (options[:opacity] * 100000).round if options[:opacity]
+      @opacity = (options[:opacity] * 100_000).round if options[:opacity]
     end
 
     # allowed mime types
-    ALLOWED_MIME_TYPES = %w(image/jpeg image/png image/gif)
+    ALLOWED_MIME_TYPES = %w[image/jpeg image/png image/gif].freeze
 
     # The name to use for this picture
     # @return [String]
@@ -59,7 +57,7 @@ module Axlsx
     # sets or updates a hyperlink for this image.
     # @param [String] v The href value for the hyper link
     # @option options @see Hyperlink#initialize All options available to the Hyperlink class apply - however href will be overridden with the v parameter value.
-    def hyperlink=(v, options={})
+    def hyperlink=(v, options = {})
       options[:href] = v
       if hyperlink.is_a?(Hyperlink)
         options.each do |o|
@@ -72,17 +70,24 @@ module Axlsx
     end
 
     def image_src=(v)
-      Axlsx::validate_string(v)
+      Axlsx.validate_string(v)
       RestrictionValidator.validate 'Pic.image_src', ALLOWED_MIME_TYPES, MimeTypeUtils.get_mime_type(v)
-      raise ArgumentError, "File does not exist" unless File.exist?(v)
+      raise ArgumentError, 'File does not exist' unless File.exist?(v)
+
       @image_src = v
     end
 
     # @see name
-    def name=(v) Axlsx::validate_string(v); @name = v; end
+    def name=(v)
+      Axlsx.validate_string(v)
+      @name = v
+    end
 
     # @see descr
-    def descr=(v) Axlsx::validate_string(v); @descr = v; end
+    def descr=(v)
+      Axlsx.validate_string(v)
+      @descr = v
+    end
 
     # The file name of image_src without any path information
     # @return [String]
@@ -105,7 +110,7 @@ module Axlsx
     # The part name for this image used in serialization and relationship building
     # @return [String]
     def pn
-      "#{IMAGE_PN % [(index+1), extname]}"
+      format(IMAGE_PN, (index + 1), extname).to_s
     end
 
     # The relationship object for this pic.
@@ -118,6 +123,7 @@ module Axlsx
     # @see OneCellAnchor.width
     def width
       return unless @anchor.is_a?(OneCellAnchor)
+
       @anchor.width
     end
 
@@ -147,7 +153,7 @@ module Axlsx
     # @param [Integer] x The column
     # @param [Integer] y The row
     # @return [Marker]
-    def start_at(x, y=nil)
+    def start_at(x, y = nil)
       @anchor.start_at x, y
       @anchor.from
     end
@@ -156,7 +162,7 @@ module Axlsx
     # @param [Integer] x The column
     # @param [Integer] y The row
     # @return [Marker]
-    def end_at(x, y=nil)
+    def end_at(x, y = nil)
       use_two_cell_anchor unless @anchor.is_a?(TwoCellAnchor)
       @anchor.end_at x, y
       @anchor.to
@@ -175,9 +181,7 @@ module Axlsx
       str << '</xdr:cNvPicPr></xdr:nvPicPr>'
       str << '<xdr:blipFill>'
       str << ('<a:blip xmlns:r ="' << XML_NS_R << '" r:embed="' << relationship.Id << '">')
-      if opacity
-        str << "<a:alphaModFix amt=\"#{opacity}\"/>"
-      end
+      str << "<a:alphaModFix amt=\"#{opacity}\"/>" if opacity
       str << '</a:blip>'
       str << '<a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr>'
       str << '<a:xfrm><a:off x="0" y="0"/><a:ext cx="2336800" cy="2161540"/></a:xfrm>'
@@ -189,14 +193,16 @@ module Axlsx
     # Changes the anchor to a one cell anchor.
     def use_one_cell_anchor
       return if @anchor.is_a?(OneCellAnchor)
-      new_anchor = OneCellAnchor.new(@anchor.drawing, :start_at => [@anchor.from.col, @anchor.from.row])
+
+      new_anchor = OneCellAnchor.new(@anchor.drawing, start_at: [@anchor.from.col, @anchor.from.row])
       swap_anchor(new_anchor)
     end
 
-    #changes the anchor type to a two cell anchor
+    # changes the anchor type to a two cell anchor
     def use_two_cell_anchor
       return if @anchor.is_a?(TwoCellAnchor)
-      new_anchor = TwoCellAnchor.new(@anchor.drawing, :start_at => [@anchor.from.col, @anchor.from.row])
+
+      new_anchor = TwoCellAnchor.new(@anchor.drawing, start_at: [@anchor.from.col, @anchor.from.row])
       swap_anchor(new_anchor)
     end
 
@@ -204,7 +210,7 @@ module Axlsx
     def swap_anchor(new_anchor)
       new_anchor.drawing.anchors.delete(new_anchor)
       @anchor.drawing.anchors[@anchor.drawing.anchors.index(@anchor)] = new_anchor
-      new_anchor.instance_variable_set "@object", @anchor.object
+      new_anchor.instance_variable_set '@object', @anchor.object
       @anchor = new_anchor
     end
   end

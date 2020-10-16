@@ -6,35 +6,34 @@ class TestTitle < Test::Unit::TestCase
   def setup
     @p = Axlsx::Package.new
     ws = @p.workbook.add_worksheet
-    @row = ws.add_row ["one", 1, Time.now]
+    @row = ws.add_row ['one', 1, Time.now]
     @title = Axlsx::Title.new
     @chart = ws.add_chart Axlsx::Bar3DChart
   end
 
-  def teardown
-  end
+  def teardown; end
 
   def test_initialization
-    assert(@title.text == "")
-    assert(@title.cell == nil)
+    assert(@title.text == '')
+    assert(@title.cell.nil?)
   end
 
   def test_initialize_title_size
     title = Axlsx::Title.new 'bob', 90
-    assert_equal "90", title.text_size
+    assert_equal '90', title.text_size
   end
 
   def test_text
-    assert_raise(ArgumentError, "text must be a string") { @title.text = 123 }
+    assert_raise(ArgumentError, 'text must be a string') { @title.text = 123 }
     @title.cell = @row.cells.first
-    @title.text = "bob"
-    assert(@title.cell == nil, "setting title with text clears the cell")
+    @title.text = 'bob'
+    assert(@title.cell.nil?, 'setting title with text clears the cell')
   end
 
   def test_cell
-    assert_raise(ArgumentError, "cell must be a Cell") { @title.cell = "123" }
+    assert_raise(ArgumentError, 'cell must be a Cell') { @title.cell = '123' }
     @title.cell = @row.cells.first
-    assert(@title.text == "one")
+    assert(@title.text == 'one')
   end
 
   def test_to_xml_string_text
@@ -50,5 +49,4 @@ class TestTitle < Test::Unit::TestCase
     assert_equal(1, doc.xpath('//c:strCache').size)
     assert_equal(1, doc.xpath('//c:v[text()="one"]').size)
   end
-
 end

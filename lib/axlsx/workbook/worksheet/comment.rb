@@ -1,8 +1,6 @@
 module Axlsx
-
   # A comment is the text data for a comment
   class Comment
-
     include Axlsx::OptionsParser
     include Axlsx::Accessors
 
@@ -13,8 +11,9 @@ module Axlsx
     # @option [String] text The text for the comment
     # @option [String] ref The refence (e.g. 'A3' where this comment will be anchored.
     # @option [Boolean] visible This controls the visiblity of the associated vml_shape.
-    def initialize(comments, options={})
-      raise ArgumentError, "A comment needs a parent comments object" unless comments.is_a?(Comments)
+    def initialize(comments, options = {})
+      raise ArgumentError, 'A comment needs a parent comments object' unless comments.is_a?(Comments)
+
       @visible = true
       @comments = comments
       parse_options options
@@ -60,13 +59,13 @@ module Axlsx
     # serialize the object
     # @param [String] str
     # @return [String]
-    def to_xml_string(str = "")
+    def to_xml_string(str = '')
       author = @comments.authors[author_index]
       str << ('<comment ref="' << ref << '" authorId="' << author_index.to_s << '">')
       str << '<text>'
-      unless author.to_s == ""
+      unless author.to_s == ''
         str << '<r><rPr><b/><color indexed="81"/></rPr>'
-        str << ("<t>" << ::CGI.escapeHTML(author.to_s) << ":\n</t></r>")
+        str << ('<t>' << ::CGI.escapeHTML(author.to_s) << ":\n</t></r>")
       end
       str << '<r>'
       str << '<rPr><color indexed="81"/></rPr>'
@@ -79,12 +78,12 @@ module Axlsx
     # initialize the vml shape based on this comment's ref/position in the worksheet.
     # by default, all columns are 5 columns wide and 5 rows high
     def initialize_vml_shape
-      pos = Axlsx::name_to_indices(ref)
-      @vml_shape = VmlShape.new(:row => pos[1], :column => pos[0], :visible => @visible) do |vml|
+      pos = Axlsx.name_to_indices(ref)
+      @vml_shape = VmlShape.new(row: pos[1], column: pos[0], visible: @visible) do |vml|
         vml.left_column = vml.column
-        vml.right_column = vml.column + 2 
+        vml.right_column = vml.column + 2
         vml.top_row = vml.row
-         vml.bottom_row = vml.row + 4
+        vml.bottom_row = vml.row + 4
       end
     end
   end

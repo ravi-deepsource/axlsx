@@ -3,8 +3,8 @@ require 'tc_helper.rb'
 class RichTextRun < Test::Unit::TestCase
   def setup
     @p = Axlsx::Package.new
-    @ws = @p.workbook.add_worksheet :name => "hmmmz"
-    @p.workbook.styles.add_style :sz => 20
+    @ws = @p.workbook.add_worksheet name: 'hmmmz'
+    @p.workbook.styles.add_style sz: 20
     @rtr = Axlsx::RichTextRun.new('hihihi', b: true, i: false)
     @rtr2 = Axlsx::RichTextRun.new('hihi2hi2', b: false, i: true)
     @rt = Axlsx::RichText.new
@@ -21,7 +21,7 @@ class RichTextRun < Test::Unit::TestCase
   end
 
   def test_font_size_with_custom_style_and_no_sz
-    @c.style = @c.row.worksheet.workbook.styles.add_style :bg_color => 'FF00FF'
+    @c.style = @c.row.worksheet.workbook.styles.add_style bg_color: 'FF00FF'
     sz = @rtr.send(:font_size)
     assert_equal(sz, @c.row.worksheet.workbook.styles.fonts.first.sz * 1.5)
     sz = @rtr2.send(:font_size)
@@ -29,13 +29,13 @@ class RichTextRun < Test::Unit::TestCase
   end
 
   def test_font_size_with_bolding
-    @c.style = @c.row.worksheet.workbook.styles.add_style :b => true
+    @c.style = @c.row.worksheet.workbook.styles.add_style b: true
     assert_equal(@c.row.worksheet.workbook.styles.fonts.first.sz * 1.5, @rtr.send(:font_size))
     assert_equal(@c.row.worksheet.workbook.styles.fonts.first.sz * 1.5, @rtr2.send(:font_size)) # is this the correct behaviour?
   end
 
   def test_font_size_with_custom_sz
-    @c.style = @c.row.worksheet.workbook.styles.add_style :sz => 52
+    @c.style = @c.row.worksheet.workbook.styles.add_style sz: 52
     sz = @rtr.send(:font_size)
     assert_equal(sz, 52 * 1.5)
     sz2 = @rtr2.send(:font_size)
@@ -49,8 +49,8 @@ class RichTextRun < Test::Unit::TestCase
 
   def test_color
     assert_raise(ArgumentError) { @rtr.color = -1.1 }
-    assert_nothing_raised { @rtr.color = "FF00FF00" }
-    assert_equal(@rtr.color.rgb, "FF00FF00")
+    assert_nothing_raised { @rtr.color = 'FF00FF00' }
+    assert_equal(@rtr.color.rgb, 'FF00FF00')
   end
 
   def test_scheme
@@ -106,7 +106,7 @@ class RichTextRun < Test::Unit::TestCase
     assert_raise(ArgumentError) { @c.u = -1.1 }
     assert_nothing_raised { @c.u = :single }
     assert_equal(@c.u, :single)
-    doc = Nokogiri::XML(@c.to_xml_string(1,1))
+    doc = Nokogiri::XML(@c.to_xml_string(1, 1))
     assert(doc.xpath('//u[@val="single"]'))
   end
 
@@ -118,8 +118,8 @@ class RichTextRun < Test::Unit::TestCase
 
   def test_rFont
     assert_raise(ArgumentError) { @c.font_name = -1.1 }
-    assert_nothing_raised { @c.font_name = "Arial" }
-    assert_equal(@c.font_name, "Arial")
+    assert_nothing_raised { @c.font_name = 'Arial' }
+    assert_equal(@c.font_name, 'Arial')
   end
 
   def test_charset
@@ -141,11 +141,11 @@ class RichTextRun < Test::Unit::TestCase
   end
 
   def test_multiline_autowidth
-    wrap = @p.workbook.styles.add_style({:alignment => {:wrap_text => true}})
-    awtr = Axlsx::RichTextRun.new('I\'m bold' + "\n", :b => true)
+    wrap = @p.workbook.styles.add_style({ alignment: { wrap_text: true } })
+    awtr = Axlsx::RichTextRun.new('I\'m bold' + "\n", b: true)
     rt = Axlsx::RichText.new
     rt.runs << awtr
-    @ws.add_row [rt], :style => wrap
+    @ws.add_row [rt], style: wrap
     ar = [0]
     awtr.autowidth(ar)
     assert_equal(ar.length, 2)
@@ -160,7 +160,7 @@ class RichTextRun < Test::Unit::TestCase
       puts error.message
       errors.push error
     end
-    assert(errors.empty?, "error free validation")
+    assert(errors.empty?, 'error free validation')
 
     assert(doc.xpath('//rPr/b[@val=1]'))
     assert(doc.xpath('//rPr/i[@val=0]'))

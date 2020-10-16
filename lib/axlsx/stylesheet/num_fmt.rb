@@ -1,9 +1,7 @@
-# encoding: UTF-8
 module Axlsx
   # A NumFmt object defines an identifier and formatting code for data in cells.
   # @note The recommended way to manage styles is Styles#add_style
   class NumFmt
-
     include Axlsx::OptionsParser
     include Axlsx::SerializedAttributes
 
@@ -11,9 +9,9 @@ module Axlsx
     # @param [Hash] options Options for the number format object
     # @option [Integer] numFmtId The predefined format id or new format id for this format
     # @option [String] formatCode The format code for this number format
-    def initialize(options={})
+    def initialize(options = {})
       @numFmtId = 0
-      @formatCode = ""
+      @formatCode = ''
       parse_options options
     end
 
@@ -61,10 +59,16 @@ module Axlsx
     attr_reader :numFmtId
 
     # @see numFmtId
-    def numFmtId=(v) Axlsx::validate_unsigned_int v; @numFmtId = v end
+    def numFmtId=(v)
+      Axlsx.validate_unsigned_int v
+      @numFmtId = v
+    end
 
     # @see formatCode
-    def formatCode=(v) Axlsx::validate_string v; @formatCode = v end
+    def formatCode=(v)
+      Axlsx.validate_string v
+      @formatCode = v
+    end
 
     # Serializes the object
     # @param [String] str
@@ -81,6 +85,5 @@ module Axlsx
       end
       str
     end
-
   end
 end

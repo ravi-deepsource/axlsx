@@ -1,14 +1,11 @@
 require 'tc_helper.rb'
 
 class TestGradientFill < Test::Unit::TestCase
-
   def setup
     @item = Axlsx::GradientFill.new
   end
 
-  def teardown
-  end
-
+  def teardown; end
 
   def test_initialiation
     assert_equal(@item.type, :linear)
@@ -57,14 +54,14 @@ class TestGradientFill < Test::Unit::TestCase
   end
 
   def test_stop
-    @item.stop << Axlsx::GradientStop.new(Axlsx::Color.new(:rgb=>"00000000"), 0.5)
+    @item.stop << Axlsx::GradientStop.new(Axlsx::Color.new(rgb: '00000000'), 0.5)
     assert(@item.stop.size == 1)
     assert(@item.stop.last.is_a?(Axlsx::GradientStop))
   end
 
   def test_to_xml_string
-    @item.stop << Axlsx::GradientStop.new(Axlsx::Color.new(:rgb => "000000"), 0.5)
-    @item.stop << Axlsx::GradientStop.new(Axlsx::Color.new(:rgb => "FFFFFF"), 0.5)
+    @item.stop << Axlsx::GradientStop.new(Axlsx::Color.new(rgb: '000000'), 0.5)
+    @item.stop << Axlsx::GradientStop.new(Axlsx::Color.new(rgb: 'FFFFFF'), 0.5)
     @item.type = :path
     doc = Nokogiri::XML(@item.to_xml_string)
     assert(doc.xpath("//color[@rgb='FF000000']"))

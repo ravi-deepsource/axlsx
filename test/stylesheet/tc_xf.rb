@@ -1,13 +1,11 @@
 require 'tc_helper.rb'
 
 class TestXf < Test::Unit::TestCase
-
   def setup
     @item = Axlsx::Xf.new
   end
 
-  def teardown
-  end
+  def teardown; end
 
   def test_initialiation
     assert_equal(@item.alignment, nil)
@@ -116,5 +114,4 @@ class TestXf < Test::Unit::TestCase
     assert_nothing_raised { @item.applyProtection = false }
     assert_equal(@item.applyProtection, false)
   end
-
 end
