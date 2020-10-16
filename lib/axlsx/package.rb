@@ -1,4 +1,3 @@
-# encoding: utf-8
 module Axlsx
   # Package is responsible for managing all the bits and peices that Open Office XML requires to make a valid
   # xlsx document including valdation and serialization.
@@ -20,9 +19,10 @@ module Axlsx
     # @option options [Time] :created_at Timestamp in the document properties (defaults to current time).
     # @option options [Boolean] :use_shared_strings This is passed to the workbook to specify that shared strings should be used when serializing the package.
     # @example Package.new :author => 'you!', :workbook => Workbook.new
-    def initialize(options={})
+    def initialize(options = {})
       @workbook = nil
-      @core, @app = Core.new, App.new
+      @core = Core.new
+      @app = App.new
       @core.creator = options[:author] || @core.creator
       @core.created = options[:created_at]
       parse_options options
@@ -32,11 +32,9 @@ module Axlsx
     # Shortcut to specify that the workbook should use autowidth
     # @see Workbook#use_autowidth
     def use_autowidth=(v)
-      Axlsx::validate_boolean(v);
+      Axlsx.validate_boolean(v)
       workbook.use_autowidth = v
     end
-
-
 
     # Shortcut to determine if the workbook is configured to use shared strings
     # @see Workbook#use_shared_strings
@@ -47,9 +45,10 @@ module Axlsx
     # Shortcut to specify that the workbook should use shared strings
     # @see Workbook#use_shared_strings
     def use_shared_strings=(v)
-      Axlsx::validate_boolean(v);
+      Axlsx.validate_boolean(v)
       workbook.use_shared_strings = v
     end
+
     # The workbook this package will serialize or validate.
     # @return [Workbook] If no workbook instance has been assigned with this package a new Workbook instance is returned.
     # @raise ArgumentError if workbook parameter is not a Workbook instance.
@@ -68,15 +67,18 @@ module Axlsx
       @workbook
     end
 
-    #def self.parse(input, confirm_valid = false)
+    # def self.parse(input, confirm_valid = false)
     #  p = Package.new
     #  z = Zip::File.open(input)
     #  p.workbook = Workbook.parse z.get_entry(WORKBOOK_PN)
     #  p
-    #end
+    # end
 
     # @see workbook
-    def workbook=(workbook) DataTypeValidator.validate :Package_workbook, Workbook, workbook; @workbook = workbook; end
+    def workbook=(workbook)
+      DataTypeValidator.validate :Package_workbook, Workbook, workbook
+      @workbook = workbook
+    end
 
     # Serialize your workbook to disk as an xlsx document.
     #
@@ -98,8 +100,9 @@ module Axlsx
     #   # Serialize to a stream
     #   s = p.to_stream()
     #   File.open('example_streamed.xlsx', 'w') { |f| f.write(s.read) }
-    def serialize(output, confirm_valid=false)
-      return false unless !confirm_valid || self.validate.empty?
+    def serialize(output, confirm_valid = false)
+      return false unless !confirm_valid || validate.empty?
+
       Relationship.clear_cached_instances
       Zip::OutputStream.open(output) do |zip|
         write_parts(zip)
@@ -107,12 +110,12 @@ module Axlsx
       true
     end
 
-
     # Serialize your workbook to a StringIO instance
     # @param [Boolean] confirm_valid Validate the package prior to serialization.
     # @return [StringIO|Boolean] False if confirm_valid and validation errors exist. rewound string IO if not.
-    def to_stream(confirm_valid=false)
-      return false unless !confirm_valid || self.validate.empty?
+    def to_stream(confirm_valid = false)
+      return false unless !confirm_valid || validate.empty?
+
       Relationship.clear_cached_instances
       zip = write_parts(Zip::OutputStream.new(StringIO.new, true))
       stream = zip.close_buffer
@@ -122,8 +125,8 @@ module Axlsx
 
     # Encrypt the package into a CFB using the password provided
     # This is not ready yet
-    def encrypt(file_name, password)
-      return false
+    def encrypt(_file_name, _password)
+      false
       # moc = MsOffCrypto.new(file_name, password)
       # moc.save
     end
@@ -146,9 +149,7 @@ module Axlsx
     def validate
       errors = []
       parts.each do |part|
-        unless part[:schema].nil?
-          errors.concat validate_single_doc(part[:schema], part[:doc].to_xml_string)
-        end
+        errors.concat validate_single_doc(part[:schema], part[:doc].to_xml_string) unless part[:schema].nil?
       end
       errors
     end
@@ -186,7 +187,7 @@ module Axlsx
     # @return [Zip::Entry]
     def zip_entry_for_part(part)
       timestamp = Zip::DOSTime.at(@core.created.to_i)
-      Zip::Entry.new("", part[:entry], "", "", 0, 0, Zip::Entry::DEFLATED, 0, timestamp)
+      Zip::Entry.new('', part[:entry], '', '', 0, 0, Zip::Entry::DEFLATED, 0, timestamp)
     end
 
     # The parts of a package
@@ -194,53 +195,50 @@ module Axlsx
     # @private
     def parts
       parts = [
-       {:entry => RELS_PN, :doc => relationships, :schema => RELS_XSD},
-       {:entry => "xl/#{STYLES_PN}", :doc => workbook.styles, :schema => SML_XSD},
-       {:entry => CORE_PN, :doc => @core, :schema => CORE_XSD},
-       {:entry => APP_PN, :doc => @app, :schema => APP_XSD},
-       {:entry => WORKBOOK_RELS_PN, :doc => workbook.relationships, :schema => RELS_XSD},
-       {:entry => CONTENT_TYPES_PN, :doc => content_types, :schema => CONTENT_TYPES_XSD},
-       {:entry => WORKBOOK_PN, :doc => workbook, :schema => SML_XSD}
+        { entry: RELS_PN, doc: relationships, schema: RELS_XSD },
+        { entry: "xl/#{STYLES_PN}", doc: workbook.styles, schema: SML_XSD },
+        { entry: CORE_PN, doc: @core, schema: CORE_XSD },
+        { entry: APP_PN, doc: @app, schema: APP_XSD },
+        { entry: WORKBOOK_RELS_PN, doc: workbook.relationships, schema: RELS_XSD },
+        { entry: CONTENT_TYPES_PN, doc: content_types, schema: CONTENT_TYPES_XSD },
+        { entry: WORKBOOK_PN, doc: workbook, schema: SML_XSD }
       ]
 
       workbook.drawings.each do |drawing|
-        parts << {:entry => "xl/#{drawing.rels_pn}", :doc => drawing.relationships, :schema => RELS_XSD}
-        parts << {:entry => "xl/#{drawing.pn}", :doc => drawing, :schema => DRAWING_XSD}
+        parts << { entry: "xl/#{drawing.rels_pn}", doc: drawing.relationships, schema: RELS_XSD }
+        parts << { entry: "xl/#{drawing.pn}", doc: drawing, schema: DRAWING_XSD }
       end
 
-
       workbook.tables.each do |table|
-        parts << {:entry => "xl/#{table.pn}", :doc => table, :schema => SML_XSD}
+        parts << { entry: "xl/#{table.pn}", doc: table, schema: SML_XSD }
       end
       workbook.pivot_tables.each do |pivot_table|
         cache_definition = pivot_table.cache_definition
-        parts << {:entry => "xl/#{pivot_table.rels_pn}", :doc => pivot_table.relationships, :schema => RELS_XSD}
-        parts << {:entry => "xl/#{pivot_table.pn}", :doc => pivot_table} #, :schema => SML_XSD}
-        parts << {:entry => "xl/#{cache_definition.pn}", :doc => cache_definition} #, :schema => SML_XSD}
+        parts << { entry: "xl/#{pivot_table.rels_pn}", doc: pivot_table.relationships, schema: RELS_XSD }
+        parts << { entry: "xl/#{pivot_table.pn}", doc: pivot_table } # , :schema => SML_XSD}
+        parts << { entry: "xl/#{cache_definition.pn}", doc: cache_definition } # , :schema => SML_XSD}
       end
 
-      workbook.comments.each do|comment|
+      workbook.comments.each do |comment|
         if comment.size > 0
-          parts << { :entry => "xl/#{comment.pn}", :doc => comment, :schema => SML_XSD }
-          parts << { :entry => "xl/#{comment.vml_drawing.pn}", :doc => comment.vml_drawing, :schema => nil }
+          parts << { entry: "xl/#{comment.pn}", doc: comment, schema: SML_XSD }
+          parts << { entry: "xl/#{comment.vml_drawing.pn}", doc: comment.vml_drawing, schema: nil }
         end
       end
 
       workbook.charts.each do |chart|
-        parts << {:entry => "xl/#{chart.pn}", :doc => chart, :schema => DRAWING_XSD}
+        parts << { entry: "xl/#{chart.pn}", doc: chart, schema: DRAWING_XSD }
       end
 
       workbook.images.each do |image|
-        parts << {:entry => "xl/#{image.pn}", :path => image.image_src}
+        parts << { entry: "xl/#{image.pn}", path: image.image_src }
       end
 
-      if use_shared_strings
-        parts << {:entry => "xl/#{SHARED_STRINGS_PN}", :doc => workbook.shared_strings, :schema => SML_XSD}
-      end
+      parts << { entry: "xl/#{SHARED_STRINGS_PN}", doc: workbook.shared_strings, schema: SML_XSD } if use_shared_strings
 
       workbook.worksheets.each do |sheet|
-        parts << {:entry => "xl/#{sheet.rels_pn}", :doc => sheet.relationships, :schema => RELS_XSD}
-        parts << {:entry => "xl/#{sheet.pn}", :doc => sheet, :schema => SML_XSD}
+        parts << { entry: "xl/#{sheet.rels_pn}", doc: sheet.relationships, schema: RELS_XSD }
+        parts << { entry: "xl/#{sheet.pn}", doc: sheet, schema: SML_XSD }
       end
 
       # Sort parts for correct MIME detection
@@ -269,56 +267,54 @@ module Axlsx
     def content_types
       c_types = base_content_types
       workbook.drawings.each do |drawing|
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{drawing.pn}",
-                                       :ContentType => DRAWING_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{drawing.pn}",
+                                       ContentType: DRAWING_CT)
       end
 
       workbook.charts.each do |chart|
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{chart.pn}",
-                                       :ContentType => CHART_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{chart.pn}",
+                                       ContentType: CHART_CT)
       end
 
       workbook.tables.each do |table|
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{table.pn}",
-                                       :ContentType => TABLE_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{table.pn}",
+                                       ContentType: TABLE_CT)
       end
 
       workbook.pivot_tables.each do |pivot_table|
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{pivot_table.pn}",
-                                       :ContentType => PIVOT_TABLE_CT)
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{pivot_table.cache_definition.pn}",
-                                       :ContentType => PIVOT_TABLE_CACHE_DEFINITION_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{pivot_table.pn}",
+                                       ContentType: PIVOT_TABLE_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{pivot_table.cache_definition.pn}",
+                                       ContentType: PIVOT_TABLE_CACHE_DEFINITION_CT)
       end
 
       workbook.comments.each do |comment|
         if comment.size > 0
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{comment.pn}",
-                                       :ContentType => COMMENT_CT)
+          c_types << Axlsx::Override.new(PartName: "/xl/#{comment.pn}",
+                                         ContentType: COMMENT_CT)
         end
       end
 
-      if workbook.comments.size > 0
-        c_types << Axlsx::Default.new(:Extension => "vml", :ContentType => VML_DRAWING_CT)
-      end
+      c_types << Axlsx::Default.new(Extension: 'vml', ContentType: VML_DRAWING_CT) if workbook.comments.size > 0
 
       workbook.worksheets.each do |sheet|
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{sheet.pn}",
-                                         :ContentType => WORKSHEET_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{sheet.pn}",
+                                       ContentType: WORKSHEET_CT)
       end
       exts = workbook.images.map { |image| image.extname.downcase }
       exts.uniq.each do |ext|
-        ct = if  ['jpeg', 'jpg'].include?(ext)
+        ct = if %w[jpeg jpg].include?(ext)
                JPEG_CT
              elsif ext == 'gif'
                GIF_CT
              elsif ext == 'png'
                PNG_CT
              end
-        c_types << Axlsx::Default.new(:ContentType => ct, :Extension => ext )
+        c_types << Axlsx::Default.new(ContentType: ct, Extension: ext)
       end
       if use_shared_strings
-        c_types << Axlsx::Override.new(:PartName => "/xl/#{SHARED_STRINGS_PN}",
-                                       :ContentType => SHARED_STRINGS_CT)
+        c_types << Axlsx::Override.new(PartName: "/xl/#{SHARED_STRINGS_PN}",
+                                       ContentType: SHARED_STRINGS_CT)
       end
       c_types
     end
@@ -327,13 +323,13 @@ module Axlsx
     # @return [ContentType]
     # @private
     def base_content_types
-      c_types = ContentType.new()
-      c_types << Default.new(:ContentType => RELS_CT, :Extension => RELS_EX)
-      c_types << Default.new(:Extension => XML_EX, :ContentType => XML_CT)
-      c_types << Override.new(:PartName => "/#{APP_PN}", :ContentType => APP_CT)
-      c_types << Override.new(:PartName => "/#{CORE_PN}", :ContentType => CORE_CT)
-      c_types << Override.new(:PartName => "/xl/#{STYLES_PN}", :ContentType => STYLES_CT)
-      c_types << Axlsx::Override.new(:PartName => "/#{WORKBOOK_PN}", :ContentType => WORKBOOK_CT)
+      c_types = ContentType.new
+      c_types << Default.new(ContentType: RELS_CT, Extension: RELS_EX)
+      c_types << Default.new(Extension: XML_EX, ContentType: XML_CT)
+      c_types << Override.new(PartName: "/#{APP_PN}", ContentType: APP_CT)
+      c_types << Override.new(PartName: "/#{CORE_PN}", ContentType: CORE_CT)
+      c_types << Override.new(PartName: "/xl/#{STYLES_PN}", ContentType: STYLES_CT)
+      c_types << Axlsx::Override.new(PartName: "/#{WORKBOOK_PN}", ContentType: WORKBOOK_CT)
       c_types.lock
       c_types
     end
@@ -351,4 +347,3 @@ module Axlsx
     end
   end
 end
-

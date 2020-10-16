@@ -5,14 +5,14 @@ class TestPivotTableCacheDefinition < Test::Unit::TestCase
     p = Axlsx::Package.new
     @ws = p.workbook.add_worksheet
     5.times do
-      @ws << ["aa","aa","aa","aa"]
+      @ws << %w[aa aa aa aa]
     end
     @pivot_table = @ws.add_pivot_table('G5:G6', 'A1:D5')
     @cache_definition = @pivot_table.cache_definition
   end
 
   def test_initialization
-    assert(@cache_definition.is_a?(Axlsx::PivotTableCacheDefinition), "must create a pivot table cache definition")
+    assert(@cache_definition.is_a?(Axlsx::PivotTableCacheDefinition), 'must create a pivot table cache definition')
     assert_equal(@pivot_table, @cache_definition.pivot_table, 'refers back to its pivot table')
   end
 
@@ -34,10 +34,10 @@ class TestPivotTableCacheDefinition < Test::Unit::TestCase
 
   def test_data_sheet
     data_sheet = @ws.clone
-    data_sheet.name = "Pivot Table Data Source"
+    data_sheet.name = 'Pivot Table Data Source'
     @pivot_table.data_sheet = data_sheet
 
-    assert(@cache_definition.to_xml_string.include?(data_sheet.name), "must set the data source correctly")
+    assert(@cache_definition.to_xml_string.include?(data_sheet.name), 'must set the data source correctly')
   end
 
   def test_to_xml_string
@@ -48,7 +48,6 @@ class TestPivotTableCacheDefinition < Test::Unit::TestCase
       errors.push error
       puts error.message
     end
-    assert(errors.empty?, "error free validation")
+    assert(errors.empty?, 'error free validation')
   end
-
 end

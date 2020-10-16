@@ -1,23 +1,22 @@
 require 'tc_helper.rb'
 
 class TestAreaSeries < Test::Unit::TestCase
-
   def setup
     p = Axlsx::Package.new
-    @ws = p.workbook.add_worksheet :name=>"hmmm"
-    chart = @ws.add_chart Axlsx::AreaChart, :title => "fishery"
+    @ws = p.workbook.add_worksheet name: 'hmmm'
+    chart = @ws.add_chart Axlsx::AreaChart, title: 'fishery'
     @series = chart.add_series(
-      :data => [0,1,2],
-      :labels => ["zero", "one", "two"],
-      :title => "bob",
-      :color => "#FF0000",
-      :show_marker => true,
-      :smooth => true
+      data: [0, 1, 2],
+      labels: %w[zero one two],
+      title: 'bob',
+      color: '#FF0000',
+      show_marker: true,
+      smooth: true
     )
   end
 
   def test_initialize
-    assert_equal(@series.title.text, "bob", "series title has been applied")
+    assert_equal(@series.title.text, 'bob', 'series title has been applied')
     assert_equal(@series.labels.class, Axlsx::AxDataSource)
     assert_equal(@series.data.class, Axlsx::NumDataSource)
   end
@@ -43,8 +42,8 @@ class TestAreaSeries < Test::Unit::TestCase
   def test_to_xml_string
     doc = Nokogiri::XML(wrap_with_namespaces(@series))
     assert(doc.xpath("//srgbClr[@val='#{@series.color}']"))
-    assert_equal(xpath_with_namespaces(doc, "//c:marker").size, 0)
-    assert(doc.xpath("//smooth"))
+    assert_equal(xpath_with_namespaces(doc, '//c:marker').size, 0)
+    assert(doc.xpath('//smooth'))
 
     @series.marker_symbol = :diamond
     doc = Nokogiri::XML(wrap_with_namespaces(@series))
@@ -66,6 +65,6 @@ class TestAreaSeries < Test::Unit::TestCase
   end
 
   def xpath_with_namespaces(doc, xpath)
-    doc.xpath(xpath, "a" => Axlsx::XML_NS_A, "c" => Axlsx::XML_NS_C)
+    doc.xpath(xpath, 'a' => Axlsx::XML_NS_A, 'c' => Axlsx::XML_NS_C)
   end
 end

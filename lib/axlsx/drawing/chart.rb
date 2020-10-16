@@ -1,11 +1,8 @@
-# encoding: UTF-8
 module Axlsx
-
   # A Chart is the superclass for specific charts
   # @note Worksheet#add_chart is the recommended way to create charts for your worksheets.
   # @see README for examples
   class Chart
-
     include Axlsx::OptionsParser
     # Creates a new chart object
     # @param [GraphicalFrame] frame The frame that holds this chart.
@@ -14,10 +11,10 @@ module Axlsx
     # @option options [Symbol] legend_position
     # @option options [Array|String|Cell] start_at The X, Y coordinates defining the top left corner of the chart.
     # @option options [Array|String|Cell] end_at The X, Y coordinates defining the bottom right corner of the chart.
-    def initialize(frame, options={})
+    def initialize(frame, options = {})
       @style = 18
       @view_3D = nil
-      @graphic_frame=frame
+      @graphic_frame = frame
       @graphic_frame.anchor.drawing.worksheet.workbook.charts << self
       @series = SimpleTypedList.new Series
       @show_legend = true
@@ -34,7 +31,7 @@ module Axlsx
 
     # The 3D view properties for the chart
     attr_reader :view_3D
-    alias :view3D :view_3D
+    alias view3D view_3D
 
     # A reference to the graphic frame that owns this chart
     # @return [GraphicFrame]
@@ -48,7 +45,7 @@ module Axlsx
     # @return [Series]
     attr_reader :series_type
 
-    #TODO data labels!
+    # TODO: data labels!
     def d_lbls
       @d_lbls ||= DLbls.new(self.class)
     end
@@ -59,7 +56,10 @@ module Axlsx
 
     # Configures the vary_colors options for this chart
     # @param [Boolean] v The value to set
-    def vary_colors=(v) Axlsx::validate_boolean(v); @vary_colors = v; end
+    def vary_colors=(v)
+      Axlsx.validate_boolean(v)
+      @vary_colors = v
+    end
 
     # The title object for the chart.
     # @return [Title]
@@ -113,7 +113,7 @@ module Axlsx
     # The part name for this chart
     # @return [String]
     def pn
-      "#{CHART_PN % (index+1)}"
+      (CHART_PN % (index + 1)).to_s
     end
 
     # The title object for the chart.
@@ -138,21 +138,33 @@ module Axlsx
     # Show the legend in the chart
     # @param [Boolean] v
     # @return [Boolean]
-    def show_legend=(v) Axlsx::validate_boolean(v); @show_legend = v; end
+    def show_legend=(v)
+      Axlsx.validate_boolean(v)
+      @show_legend = v
+    end
 
     # How to display blank values
     # @see display_blanks_as
     # @param [Symbol] v
     # @return [Symbol]
-    def display_blanks_as=(v) Axlsx::validate_display_blanks_as(v); @display_blanks_as = v; end
+    def display_blanks_as=(v)
+      Axlsx.validate_display_blanks_as(v)
+      @display_blanks_as = v
+    end
 
     # The style for the chart.
     # see ECMA Part 1 §21.2.2.196
     # @param [Integer] v must be between 1 and 48
-    def style=(v) DataTypeValidator.validate "Chart.style", Integer, v, lambda { |arg| arg >= 1 && arg <= 48 }; @style = v; end
+    def style=(v)
+      DataTypeValidator.validate 'Chart.style', Integer, v, ->(arg) { arg >= 1 && arg <= 48 }
+      @style = v
+    end
 
     # @see legend_position
-    def legend_position=(v) RestrictionValidator.validate "Chart.legend_position", [:b, :l, :r, :t, :tr], v; @legend_position = v; end
+    def legend_position=(v)
+      RestrictionValidator.validate 'Chart.legend_position', %i[b l r t tr], v
+      @legend_position = v
+    end
 
     # backwards compatibility to allow chart.to and chart.from access to anchor markers
     # @note This will be disconinued in version 2.0.0. Please use the end_at method
@@ -169,14 +181,14 @@ module Axlsx
     # Adds a new series to the chart's series collection.
     # @return [Series]
     # @see Series
-    def add_series(options={})
+    def add_series(options = {})
       @series_type.new(self, options)
       @series.last
     end
 
     # Assigns a background color to chart area
     def bg_color=(v)
-      DataTypeValidator.validate(:color, Color, Color.new(:rgb => v))
+      DataTypeValidator.validate(:color, Color, Color.new(rgb: v))
       @bg_color = v
     end
 
@@ -190,7 +202,7 @@ module Axlsx
       str << ('<c:style val="' << style.to_s << '"/>')
       str << '<c:chart>'
       @title.to_xml_string str
-      str << ('<c:autoTitleDeleted val="' << (@title == nil).to_s << '"/>')
+      str << ('<c:autoTitleDeleted val="' << @title.nil?.to_s << '"/>')
       @view_3D.to_xml_string(str) if @view_3D
       str << '<c:floor><c:thickness val="0"/></c:floor>'
       str << '<c:sideWall><c:thickness val="0"/></c:sideWall>'
@@ -252,7 +264,7 @@ module Axlsx
     # reference or cell to use in setting the start marker position.
     # @param [Integer] y The row
     # @return [Marker]
-    def start_at(x=0, y=0)
+    def start_at(x = 0, y = 0)
       @graphic_frame.anchor.start_at(x, y)
     end
 
@@ -263,14 +275,15 @@ module Axlsx
     # @param [Integer] y The row - default 10
     # @return [Marker]
     # @see start_at
-    def end_at(x=10, y=10)
+    def end_at(x = 10, y = 10)
       @graphic_frame.anchor.end_at(x, y)
     end
 
     # sets the view_3D object for the chart
-    def view_3D=(v) DataTypeValidator.validate "#{self.class}.view_3D", View3D, v; @view_3D = v; end
-    alias :view3D= :view_3D=
-
+    def view_3D=(v)
+      DataTypeValidator.validate "#{self.class}.view_3D", View3D, v
+      @view_3D = v
+    end
+    alias view3D= view_3D=
   end
-
 end

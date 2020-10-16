@@ -1,4 +1,3 @@
-# encoding: UTF-8
 module Axlsx
   # A Row is a single row in a worksheet.
   # @note The recommended way to manage rows and cells is to use Worksheet#add_row
@@ -6,13 +5,13 @@ module Axlsx
   class Row < SimpleTypedList
     include SerializedAttributes
     include Accessors
-    
+
     # No support is provided for the following attributes
     # spans
     # thickTop
     # thickBottom
 
-   # Creates a new row. New Cell objects are created based on the values, types and style options.
+    # Creates a new row. New Cell objects are created based on the values, types and style options.
     # A new cell is created for each item in the values array. style and types options are applied as follows:
     #   If the types option is defined and is a symbol it is applied to all the cells created.
     #   If the types option is an array, cell types are applied by index for each cell
@@ -27,7 +26,7 @@ module Axlsx
     # @option options [Float] height the row's height (in points)
     # @see Row#array_to_cells
     # @see Cell
-    def initialize(worksheet, values=[], options={})
+    def initialize(worksheet, values = [], options = {})
       self.worksheet = worksheet
       super(Cell, nil, values.size)
       self.height = options.delete(:height)
@@ -54,7 +53,7 @@ module Axlsx
     # Outlining level of the row, when outlining is on
     # @return [Integer]
     attr_reader :outline_level
-    alias :outlineLevel :outline_level
+    alias outlineLevel outline_level
 
     # The style applied ot the row. This affects the entire row.
     # @return [Integer]
@@ -63,7 +62,7 @@ module Axlsx
     # @see Row#s
     def s=(v)
       Axlsx.validate_unsigned_numeric(v)
-      @custom_format = true 
+      @custom_format = true
       @s = v
     end
 
@@ -72,8 +71,8 @@ module Axlsx
       Axlsx.validate_unsigned_numeric(v)
       @outline_level = v
     end
-    
-    alias :outlineLevel= :outline_level=
+
+    alias outlineLevel= outline_level=
 
     # The index of this row in the worksheet
     # @return [Integer]
@@ -86,9 +85,9 @@ module Axlsx
     # @param [String] str The string this rows xml will be appended to.
     # @return [String]
     def to_xml_string(r_index, str = '')
-      serialized_tag('row', str, :r => r_index + 1) do
+      serialized_tag('row', str, r: r_index + 1) do
         tmp = '' # time / memory tradeoff, lots of calls to rubyzip costs more
-                 # time..
+        # time..
         each_with_index { |cell, c_index| cell.to_xml_string(r_index, c_index, tmp) }
         str << tmp
       end
@@ -105,14 +104,14 @@ module Axlsx
 
     # sets the color for every cell in this row
     def color=(color)
-      each_with_index do | cell, index |
+      each_with_index do |cell, index|
         cell.color = color.is_a?(Array) ? color[index] : color
       end
     end
 
     # sets the style for every cell in this row
     def style=(style)
-      each_with_index do | cell, index |
+      each_with_index do |cell, index|
         cell.style = style.is_a?(Array) ? style[index] : style
       end
     end
@@ -120,12 +119,12 @@ module Axlsx
     # @see height
     def height=(v)
       unless v.nil?
-        Axlsx::validate_unsigned_numeric(v)
+        Axlsx.validate_unsigned_numeric(v)
         @custom_height = true
         @ht = v
       end
     end
-    
+
     # return cells
     def cells
       self
@@ -134,7 +133,10 @@ module Axlsx
     private
 
     # assigns the owning worksheet for this row
-    def worksheet=(v) DataTypeValidator.validate :row_worksheet, Worksheet, v; @worksheet=v; end
+    def worksheet=(v)
+      DataTypeValidator.validate :row_worksheet, Worksheet, v
+      @worksheet = v
+    end
 
     # Converts values, types, and style options into cells and associates them with this row.
     # A new cell is created for each item in the values array.
@@ -145,9 +147,11 @@ module Axlsx
     # @option options [Array] values
     # @option options [Array, Symbol] types
     # @option options [Array, Integer] style
-    def array_to_cells(values, options={})
+    def array_to_cells(values, options = {})
       DataTypeValidator.validate :array_to_cells, Array, values
-      types, style, formula_values = options.delete(:types), options.delete(:style), options.delete(:formula_values)
+      types = options.delete(:types)
+      style = options.delete(:style)
+      formula_values = options.delete(:formula_values)
       values.each_with_index do |value, index|
         options[:style] = style.is_a?(Array) ? style[index] : style if style
         options[:type] = types.is_a?(Array) ? types[index] : types if types
@@ -157,5 +161,4 @@ module Axlsx
       end
     end
   end
-
 end

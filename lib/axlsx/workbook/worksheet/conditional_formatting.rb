@@ -5,13 +5,12 @@ module Axlsx
   # @see Worksheet#add_conditional_formatting
   # @see ConditionalFormattingRule
   class ConditionalFormatting
+    include Axlsx::OptionsParser
 
-   include Axlsx::OptionsParser
-   
     # Creates a new {ConditionalFormatting} object
     # @option options [Array] rules The rules to apply
     # @option options [String] sqref The range to apply the rules to
-    def initialize(options={})
+    def initialize(options = {})
       @rules = []
       parse_options options
     end
@@ -28,7 +27,7 @@ module Axlsx
     # @return [Array]
     attr_reader :rules
 
-     # Add Conditional Formatting Rules to this object. Rules can either
+    # Add Conditional Formatting Rules to this object. Rules can either
     # be already created {ConditionalFormattingRule} elements or
     # hashes of options for automatic creation.  If rules is a hash
     # instead of an array, assume only one rule being added.
@@ -60,9 +59,13 @@ module Axlsx
     end
 
     # @see rules
-    def rules=(v); @rules = v end
+    attr_writer :rules
+
     # @see sqref
-    def sqref=(v); Axlsx::validate_string(v); @sqref = v end
+    def sqref=(v)
+      Axlsx.validate_string(v)
+      @sqref = v
+    end
 
     # Serializes the conditional formatting element
     # @example Conditional Formatting XML looks like:
@@ -75,7 +78,7 @@ module Axlsx
     # @return [String]
     def to_xml_string(str = '')
       str << ('<conditionalFormatting sqref="' << sqref << '">')
-      str << rules.collect{ |rule| rule.to_xml_string }.join(' ')
+      str << rules.collect { |rule| rule.to_xml_string }.join(' ')
       str << '</conditionalFormatting>'
     end
   end

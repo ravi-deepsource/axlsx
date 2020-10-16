@@ -7,7 +7,6 @@ module Axlsx
   # @see ConditionalFormattingRule#initialize
   #
   class Cfvo
-
     include Axlsx::OptionsParser
     include Axlsx::SerializedAttributes
 
@@ -15,7 +14,7 @@ module Axlsx
     # @option options [Symbol] type The type of conditional formatting value object
     # @option options [Boolean]  gte threshold value usage indicator
     # @option options [String] val The value of the conditional formatting object
-    def initialize(options={})
+    def initialize(options = {})
       @gte = true
       parse_options options
     end
@@ -39,14 +38,21 @@ module Axlsx
     attr_reader :val
 
     # @see type
-    def type=(v); Axlsx::validate_conditional_formatting_value_object_type(v); @type = v end
+    def type=(v)
+      Axlsx.validate_conditional_formatting_value_object_type(v)
+      @type = v
+    end
 
     # @see gte
-    def gte=(v); Axlsx::validate_boolean(v); @gte = v end
+    def gte=(v)
+      Axlsx.validate_boolean(v)
+      @gte = v
+    end
 
     # @see val
     def val=(v)
       raise ArgumentError, "#{v.inspect} must respond to to_s" unless v.respond_to?(:to_s)
+
       @val = v.to_s
     end
 

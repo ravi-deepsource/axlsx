@@ -2,12 +2,12 @@ require 'tc_helper.rb'
 
 class TestCfvo < Test::Unit::TestCase
   def setup
-    @cfvo = Axlsx::Cfvo.new(:val => "0", :type => :min)
+    @cfvo = Axlsx::Cfvo.new(val: '0', type: :min)
   end
 
   def test_val
-    assert_nothing_raised { @cfvo.val = "abc" }
-    assert_equal(@cfvo.val, "abc")
+    assert_nothing_raised { @cfvo.val = 'abc' }
+    assert_equal(@cfvo.val, 'abc')
   end
 
   def test_type
@@ -27,5 +27,4 @@ class TestCfvo < Test::Unit::TestCase
     doc = Nokogiri::XML.parse(@cfvo.to_xml_string)
     assert doc.xpath(".//cfvo[@type='min'][@val=0][@gte=true]")
   end
-
 end

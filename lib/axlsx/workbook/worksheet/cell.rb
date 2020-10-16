@@ -1,4 +1,3 @@
-# encoding: UTF-8
 require 'cgi'
 module Axlsx
   # A cell in a worksheet.
@@ -7,7 +6,6 @@ module Axlsx
   #
   # @see Worksheet#add_row
   class Cell
-
     include Axlsx::OptionsParser
 
     # @param [Row] row The row this cell belongs to.
@@ -38,7 +36,6 @@ module Axlsx
       type = options.delete(:type) || cell_type_from_value(value)
       self.type = type unless type == :string
 
-
       val = options.delete(:style)
       self.style = val unless val.nil? || val == 0
       val = options.delete(:formula_value)
@@ -60,14 +57,14 @@ module Axlsx
     # needs to define bla=(v) and bla methods on the class that hook into a
     # set_attr method that kicks the suplied validator and updates the instance_variable
     # for the key
-    INLINE_STYLES = [:value, :type, :font_name, :charset,
-                     :family, :b, :i, :strike, :outline,
-                     :shadow, :condense, :extend, :u,
-                     :vertAlign, :sz, :color, :scheme].freeze
+    INLINE_STYLES = %i[value type font_name charset
+                       family b i strike outline
+                       shadow condense extend u
+                       vertAlign sz color scheme].freeze
 
     # An array of valid cell types
-    CELL_TYPES = [:date, :time, :float, :integer, :richtext,
-                  :string, :boolean, :iso_8601, :text].freeze
+    CELL_TYPES = %i[date time float integer richtext
+                    string boolean iso_8601 text].freeze
 
     # The index of the cellXfs item to be applied to this cell.
     # @return [Integer]
@@ -108,7 +105,7 @@ module Axlsx
 
     # @see value
     def value=(v)
-      #TODO: consider doing value based type determination first?
+      # TODO: consider doing value based type determination first?
       @value = cast_value(v)
     end
 
@@ -124,18 +121,20 @@ module Axlsx
 
     # Indicates if the cell is good for shared string table
     def plain_string?
-      (type == :string || type == :text) &&         # String typed
+      (type == :string || type == :text) && # String typed
         !is_text_run? &&          # No inline styles
         !@value.nil? &&           # Not nil
         !@value.empty? &&         # Not empty
-        !@value.start_with?(?=)  # Not a formula
+        !@value.start_with?('=') # Not a formula
     end
 
     # The inline font_name property for the cell
     # @return [String]
     attr_reader :font_name
     # @see font_name
-    def font_name=(v) set_run_style :validate_string, :font_name, v; end
+    def font_name=(v)
+      set_run_style :validate_string, :font_name, v
+    end
 
     # The inline charset property for the cell
     # As far as I can tell, this is pretty much ignored. However, based on the spec it should be one of the following:
@@ -161,7 +160,9 @@ module Axlsx
     # @return [String]
     attr_reader :charset
     # @see charset
-    def charset=(v) set_run_style :validate_unsigned_int, :charset, v; end
+    def charset=(v)
+      set_run_style :validate_unsigned_int, :charset, v
+    end
 
     # The inline family property for the cell
     # @return [Integer]
@@ -180,43 +181,57 @@ module Axlsx
     # @return [Boolean]
     attr_reader :b
     # @see b
-    def b=(v) set_run_style :validate_boolean, :b, v; end
+    def b=(v)
+      set_run_style :validate_boolean, :b, v
+    end
 
     # The inline italic property for the cell
     # @return [Boolean]
     attr_reader :i
     # @see i
-    def i=(v) set_run_style :validate_boolean, :i, v; end
+    def i=(v)
+      set_run_style :validate_boolean, :i, v
+    end
 
     # The inline strike property for the cell
     # @return [Boolean]
     attr_reader :strike
     # @see strike
-    def strike=(v) set_run_style :validate_boolean, :strike, v; end
+    def strike=(v)
+      set_run_style :validate_boolean, :strike, v
+    end
 
     # The inline outline property for the cell
     # @return [Boolean]
     attr_reader :outline
     # @see outline
-    def outline=(v) set_run_style :validate_boolean, :outline, v; end
+    def outline=(v)
+      set_run_style :validate_boolean, :outline, v
+    end
 
     # The inline shadow property for the cell
     # @return [Boolean]
     attr_reader :shadow
     # @see shadow
-    def shadow=(v) set_run_style :validate_boolean, :shadow, v; end
+    def shadow=(v)
+      set_run_style :validate_boolean, :shadow, v
+    end
 
     # The inline condense property for the cell
     # @return [Boolean]
     attr_reader :condense
     # @see condense
-    def condense=(v) set_run_style :validate_boolean, :condense, v; end
+    def condense=(v)
+      set_run_style :validate_boolean, :condense, v
+    end
 
     # The inline extend property for the cell
     # @return [Boolean]
     attr_reader :extend
     # @see extend
-    def extend=(v) set_run_style :validate_boolean, :extend, v; end
+    def extend=(v)
+      set_run_style :validate_boolean, :extend, v
+    end
 
     # The inline underline property for the cell.
     # It must be one of :none, :single, :double, :singleAccounting, :doubleAccounting, true
@@ -226,7 +241,7 @@ module Axlsx
     attr_reader :u
     # @see u
     def u=(v)
-      v = :single if (v == true || v == 1 || v == :true || v == 'true')
+      v = :single if v == true || v == 1 || v == :true || v == 'true'
       set_run_style :validate_cell_u, :u, v
     end
 
@@ -235,7 +250,7 @@ module Axlsx
     attr_reader :color
     # @param [String] v The 8 character representation for an rgb color #FFFFFFFF"
     def color=(v)
-      @color = v.is_a?(Color) ? v : Color.new(:rgb=>v)
+      @color = v.is_a?(Color) ? v : Color.new(rgb: v)
       @is_text_run = true
     end
 
@@ -243,7 +258,9 @@ module Axlsx
     # @return [Inteter]
     attr_reader :sz
     # @see sz
-    def sz=(v) set_run_style :validate_unsigned_int, :sz, v; end
+    def sz=(v)
+      set_run_style :validate_unsigned_int, :sz, v
+    end
 
     # The inline vertical alignment property for the cell
     # this must be one of [:baseline, :subscript, :superscript]
@@ -251,7 +268,7 @@ module Axlsx
     attr_reader :vertAlign
     # @see vertAlign
     def vertAlign=(v)
-      RestrictionValidator.validate :cell_vertAlign, [:baseline, :subscript, :superscript], v
+      RestrictionValidator.validate :cell_vertAlign, %i[baseline subscript superscript], v
       set_run_style nil, :vertAlign, v
     end
 
@@ -261,7 +278,7 @@ module Axlsx
     attr_reader :scheme
     # @see scheme
     def scheme=(v)
-      RestrictionValidator.validate :cell_scheme, [:none, :major, :minor], v
+      RestrictionValidator.validate :cell_scheme, %i[none major minor], v
       set_run_style nil, :scheme, v
     end
 
@@ -278,22 +295,23 @@ module Axlsx
     # @example Relative Cell Reference
     #   ws.rows.first.cells.first.r #=> "A1"
     def r
-      Axlsx::cell_r index, @row.row_index
+      Axlsx.cell_r index, @row.row_index
     end
 
     # @return [String] The absolute alpha(column)numeric(row) reference for this sell.
     # @example Absolute Cell Reference
     #   ws.rows.first.cells.first.r #=> "$A$1"
     def r_abs
-      "$#{r.match(%r{([A-Z]+)([0-9]+)})[1,2].join('$')}"
+      "$#{r.match(/([A-Z]+)([0-9]+)/)[1, 2].join('$')}"
     end
 
     # @return [Integer] The cellXfs item index applied to this cell.
     # @raise [ArgumentError] Invalid cellXfs id if the value provided is not within cellXfs items range.
     def style=(v)
-      Axlsx::validate_unsigned_int(v)
+      Axlsx.validate_unsigned_int(v)
       count = styles.cellXfs.size
-      raise ArgumentError, "Invalid cellXfs id" unless v < count
+      raise ArgumentError, 'Invalid cellXfs id' unless v < count
+
       @style = v
     end
 
@@ -307,11 +325,11 @@ module Axlsx
     # @param [Cell, String] target The last cell, or str ref for the cell in the merge range
     def merge(target)
       start, stop = if target.is_a?(String)
-                      [self.r, target]
-                    elsif(target.is_a?(Cell))
+                      [r, target]
+                    elsif target.is_a?(Cell)
                       Axlsx.sort_cells([self, target]).map { |c| c.r }
                     end
-      self.row.worksheet.merge_cells "#{start}:#{stop}" unless stop.nil?
+      row.worksheet.merge_cells "#{start}:#{stop}" unless stop.nil?
     end
 
     # Serializes the cell
@@ -324,7 +342,7 @@ module Axlsx
     end
 
     def is_formula?
-      type == :string && @value.to_s.start_with?(?=)
+      type == :string && @value.to_s.start_with?('=')
     end
 
     def is_array_formula?
@@ -336,7 +354,7 @@ module Axlsx
     # @param [Boolean] absolute -when false a relative reference will be
     # returned.
     # @return [String]
-    def reference(absolute=true)
+    def reference(absolute = true)
       absolute ? r_abs : r
     end
 
@@ -353,6 +371,7 @@ module Axlsx
     # @return [Float]
     def autowidth
       return if is_formula? || value.nil?
+
       if contains_rich_text?
         string_width('', font_size) + value.autowidth
       elsif styles.cellXfs[style].alignment && styles.cellXfs[style].alignment.wrap_text
@@ -371,8 +390,8 @@ module Axlsx
     # TODO find a better way to do this as it accounts for 30% of
     # processing time in benchmarking...
     def clean_value
-      if (type == :string || type == :text) && !Axlsx::trust_input
-        Axlsx::sanitize(::CGI.escapeHTML(@value.to_s))
+      if (type == :string || type == :text) && !Axlsx.trust_input
+        Axlsx.sanitize(::CGI.escapeHTML(@value.to_s))
       else
         @value.to_s
       end
@@ -397,21 +416,23 @@ module Axlsx
     # imagemagick and loading metrics for every character.
     def font_size
       return sz if sz
+
       font = styles.fonts[styles.cellXfs[style].fontId] || styles.fonts[0]
-      (font.b || (defined?(@b) && @b)) ? (font.sz * 1.5) : font.sz
+      font.b || (defined?(@b) && @b) ? (font.sz * 1.5) : font.sz
     end
 
     # Utility method for setting inline style attributes
     def set_run_style(validator, attr, value)
       return unless INLINE_STYLES.include?(attr.to_sym)
+
       Axlsx.send(validator, value) unless validator.nil?
-      self.instance_variable_set :"@#{attr.to_s}", value
+      instance_variable_set :"@#{attr}", value
       @is_text_run = true
     end
 
     # @see ssti
     def ssti=(v)
-      Axlsx::validate_unsigned_int(v)
+      Axlsx.validate_unsigned_int(v)
       @ssti = v
     end
 
@@ -449,12 +470,13 @@ module Axlsx
     # @see Axlsx#date1904
     def cast_value(v)
       return v if v.is_a?(RichText) || v.nil?
+
       case type
       when :date
-        self.style = STYLE_DATE if self.style == 0
+        self.style = STYLE_DATE if style == 0
         v
       when :time
-        self.style = STYLE_DATE if self.style == 0
+        self.style = STYLE_DATE if style == 0
         if !v.is_a?(Time) && v.respond_to?(:to_time)
           v.to_time
         else
@@ -467,12 +489,11 @@ module Axlsx
       when :boolean
         v ? 1 : 0
       when :iso_8601
-        #consumer is responsible for ensuring the iso_8601 format when specifying this type
+        # consumer is responsible for ensuring the iso_8601 format when specifying this type
         v
       else
         v.to_s
       end
     end
-
   end
 end
