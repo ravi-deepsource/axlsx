@@ -1,11 +1,9 @@
-# encoding: UTF-8
 module Axlsx
   # A LineSeries defines the title, data and labels for line charts
   # @note The recommended way to manage series is to use Chart#add_series
   # @see Worksheet#add_chart
   # @see Chart#add_series
   class LineSeries < Series
-
     # The data for this series.
     # @return [ValAxisData]
     attr_reader :data
@@ -35,36 +33,35 @@ module Axlsx
     # @option options [Array, SimpleTypedList] data
     # @option options [Array, SimpleTypedList] labels
     # @param [Chart] chart
-    def initialize(chart, options={})
+    def initialize(chart, options = {})
       @show_marker = false
-      @marker_symbol = options[:marker_symbol] ? options[:marker_symbol] : :default
+      @marker_symbol = options[:marker_symbol] || :default
       @smooth = false
-      @labels, @data = nil, nil
+      @labels = nil
+      @data = nil
       super(chart, options)
-      @labels = AxDataSource.new(:data => options[:labels]) unless options[:labels].nil?
+      @labels = AxDataSource.new(data: options[:labels]) unless options[:labels].nil?
       @data = NumDataSource.new(options) unless options[:data].nil?
     end
 
     # @see color
-    def color=(v)
-      @color = v
-    end
+    attr_writer :color
 
     # @see show_marker
     def show_marker=(v)
-      Axlsx::validate_boolean(v)
+      Axlsx.validate_boolean(v)
       @show_marker = v
     end
 
     # @see marker_symbol
     def marker_symbol=(v)
-      Axlsx::validate_marker_symbol(v)
+      Axlsx.validate_marker_symbol(v)
       @marker_symbol = v
     end
 
     # @see smooth
     def smooth=(v)
-      Axlsx::validate_boolean(v)
+      Axlsx.validate_boolean(v)
       @smooth = v
     end
 
@@ -94,17 +91,22 @@ module Axlsx
 
         @labels.to_xml_string(str) unless @labels.nil?
         @data.to_xml_string(str) unless @data.nil?
-        str << ('<c:smooth val="' << ((smooth) ? '1' : '0') << '"/>')
+        str << ('<c:smooth val="' << (smooth ? '1' : '0') << '"/>')
       end
     end
 
     private
 
     # assigns the data for this series
-    def data=(v) DataTypeValidator.validate "Series.data", [NumDataSource], v; @data = v; end
+    def data=(v)
+      DataTypeValidator.validate 'Series.data', [NumDataSource], v
+      @data = v
+    end
 
     # assigns the labels for this series
-    def labels=(v) DataTypeValidator.validate "Series.labels", [AxDataSource], v; @labels = v; end
-
+    def labels=(v)
+      DataTypeValidator.validate 'Series.labels', [AxDataSource], v
+      @labels = v
+    end
   end
 end

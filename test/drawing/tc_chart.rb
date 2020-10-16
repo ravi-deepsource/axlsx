@@ -1,29 +1,27 @@
 require 'tc_helper.rb'
 
 class TestChart < Test::Unit::TestCase
-
   def setup
     @p = Axlsx::Package.new
     ws = @p.workbook.add_worksheet
-    @row = ws.add_row ["one", 1, Time.now]
-    @chart = ws.add_chart Axlsx::Bar3DChart, :title => "fishery", :bg_color => "000000"
+    @row = ws.add_row ['one', 1, Time.now]
+    @chart = ws.add_chart Axlsx::Bar3DChart, title: 'fishery', bg_color: '000000'
   end
 
-  def teardown
-  end
+  def teardown; end
 
   def test_initialization
-    assert_equal(@p.workbook.charts.last,@chart, "the chart is in the workbook")
-    assert_equal(@chart.title.text, "fishery", "the title option has been applied")
-    assert((@chart.series.is_a?(Axlsx::SimpleTypedList) && @chart.series.empty?), "The series is initialized and empty")
+    assert_equal(@p.workbook.charts.last, @chart, 'the chart is in the workbook')
+    assert_equal(@chart.title.text, 'fishery', 'the title option has been applied')
+    assert((@chart.series.is_a?(Axlsx::SimpleTypedList) && @chart.series.empty?), 'The series is initialized and empty')
   end
 
   def test_title
     @chart.title.text = 'wowzer'
-    assert_equal(@chart.title.text, "wowzer", "the title text via a string")
-    assert_equal(@chart.title.cell, nil, "the title cell is nil as we set the title with text.")
+    assert_equal(@chart.title.text, 'wowzer', 'the title text via a string')
+    assert_equal(@chart.title.cell, nil, 'the title cell is nil as we set the title with text.')
     @chart.title = @row.cells.first
-    assert_equal(@chart.title.text, "one", "the title text was set via cell reference")
+    assert_equal(@chart.title.text, 'one', 'the title text was set via cell reference')
     assert_equal(@chart.title.cell, @row.cells.first)
   end
 
@@ -40,15 +38,14 @@ class TestChart < Test::Unit::TestCase
 
   def test_bg_color
     assert_raise(ArgumentError) { @chart.bg_color = 2 }
-    assert_nothing_raised { @chart.bg_color = "FFFFFF" }
-    assert_equal(@chart.bg_color, "FFFFFF")
-
+    assert_nothing_raised { @chart.bg_color = 'FFFFFF' }
+    assert_equal(@chart.bg_color, 'FFFFFF')
   end
 
   def test_title_size
     assert_raise(ArgumentError) { @chart.title_size = 2 }
-    assert_nothing_raised { @chart.title_size = "100" }
-    assert_equal(@chart.title.text_size, "100")
+    assert_nothing_raised { @chart.title_size = '100' }
+    assert_equal(@chart.title.text_size, '100')
   end
 
   def test_vary_colors
@@ -59,8 +56,8 @@ class TestChart < Test::Unit::TestCase
   end
 
   def test_display_blanks_as
-    assert_equal(:gap, @chart.display_blanks_as, "default is not :gap")
-    assert_raise(ArgumentError, "did not validate possible values") { @chart.display_blanks_as = :hole }
+    assert_equal(:gap, @chart.display_blanks_as, 'default is not :gap')
+    assert_raise(ArgumentError, 'did not validate possible values') { @chart.display_blanks_as = :hole }
     assert_nothing_raised { @chart.display_blanks_as = :zero }
     assert_nothing_raised { @chart.display_blanks_as = :span }
     assert_equal(:span, @chart.display_blanks_as)
@@ -73,10 +70,9 @@ class TestChart < Test::Unit::TestCase
     @chart.start_at @row.cells.first
     assert_equal(@chart.graphic_frame.anchor.from.col, 0)
     assert_equal(@chart.graphic_frame.anchor.from.row, 0)
-    @chart.start_at [5,6]
+    @chart.start_at [5, 6]
     assert_equal(@chart.graphic_frame.anchor.from.col, 5)
     assert_equal(@chart.graphic_frame.anchor.from.row, 6)
-
   end
 
   def test_end_at
@@ -86,20 +82,19 @@ class TestChart < Test::Unit::TestCase
     @chart.end_at @row.cells.last
     assert_equal(@chart.graphic_frame.anchor.to.col, 2)
     assert_equal(@chart.graphic_frame.anchor.to.row, 0)
-    @chart.end_at [10,11]
+    @chart.end_at [10, 11]
     assert_equal(@chart.graphic_frame.anchor.to.col, 10)
     assert_equal(@chart.graphic_frame.anchor.to.row, 11)
-
   end
 
   def test_add_series
-    s = @chart.add_series :data=>[0,1,2,3], :labels => ["one", 1, "anything"], :title=>"bob"
-    assert_equal(@chart.series.last, s, "series has been added to chart series collection")
-    assert_equal(s.title.text, "bob", "series title has been applied")
+    s = @chart.add_series data: [0, 1, 2, 3], labels: ['one', 1, 'anything'], title: 'bob'
+    assert_equal(@chart.series.last, s, 'series has been added to chart series collection')
+    assert_equal(s.title.text, 'bob', 'series title has been applied')
   end
 
   def test_pn
-    assert_equal(@chart.pn, "charts/chart1.xml")
+    assert_equal(@chart.pn, 'charts/chart1.xml')
   end
 
   def test_d_lbls
@@ -112,12 +107,12 @@ class TestChart < Test::Unit::TestCase
     schema = Nokogiri::XML::Schema(File.open(Axlsx::DRAWING_XSD))
     doc = Nokogiri::XML(@chart.to_xml_string)
     errors = schema.validate(doc).map { |error| puts error.message; error }
-    assert(errors.empty?, "error free validation")
+    assert(errors.empty?, 'error free validation')
   end
 
   def test_to_xml_string_for_display_blanks_as
     @chart.display_blanks_as = :span
     doc = Nokogiri::XML(@chart.to_xml_string)
-    assert_equal("span", doc.xpath("//c:dispBlanksAs").attr("val").value, "did not use the display_blanks_as configuration")
+    assert_equal('span', doc.xpath('//c:dispBlanksAs').attr('val').value, 'did not use the display_blanks_as configuration')
   end
 end

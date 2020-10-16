@@ -1,10 +1,8 @@
-# encoding: UTF-8
 module Axlsx
   # Table
   # @note Worksheet#add_pivot_table is the recommended way to create tables for your worksheets.
   # @see README for examples
   class PivotTable
-
     include Axlsx::OptionsParser
 
     # Creates a new PivotTable object
@@ -13,12 +11,12 @@ module Axlsx
     # @param [Worksheet] sheet The sheet containing the table data.
     # @option options [Cell, String] name
     # @option options [TableStyle] style
-    def initialize(ref, range, sheet, options={})
+    def initialize(ref, range, sheet, options = {})
       @ref = ref
       self.range = range
       @sheet = sheet
       @sheet.workbook.pivot_tables << self
-      @name = "PivotTable#{index+1}"
+      @name = "PivotTable#{index + 1}"
       @data_sheet = nil
       @rows = []
       @columns = []
@@ -67,15 +65,12 @@ module Axlsx
     # (see #range)
     def range=(v)
       DataTypeValidator.validate "#{self.class}.range", [String], v
-      if v.is_a?(String)
-        @range = v
-      end
+      @range = v if v.is_a?(String)
     end
 
     # The rows
     # @return [Array]
     attr_reader :rows
-
 
     # (see #rows)
     def rows=(v)
@@ -108,9 +103,7 @@ module Axlsx
       DataTypeValidator.validate "#{self.class}.data", [Array], v
       @data = []
       v.each do |data_field|
-        if data_field.is_a? String
-          data_field = {:ref => data_field}
-        end
+        data_field = { ref: data_field } if data_field.is_a? String
         data_field.values.each do |value|
           DataTypeValidator.validate "#{self.class}.data[]", [String], value
         end
@@ -141,13 +134,13 @@ module Axlsx
     # The part name for this table
     # @return [String]
     def pn
-      "#{PIVOT_TABLE_PN % (index+1)}"
+      (PIVOT_TABLE_PN % (index + 1)).to_s
     end
 
     # The relationship part name of this pivot table
     # @return [String]
     def rels_pn
-      "#{PIVOT_TABLE_RELS_PN % (index+1)}"
+      (PIVOT_TABLE_RELS_PN % (index + 1)).to_s
     end
 
     # The cache_definition for this pivot table
@@ -186,7 +179,7 @@ module Axlsx
         end
         str << '</rowFields>'
         str << ('<rowItems count="' << rows.size.to_s << '">')
-        rows.size.times do |i|
+        rows.size.times do |_i|
           str << '<i/>'
         end
         str << '</rowItems>'
@@ -211,16 +204,16 @@ module Axlsx
         str << "<dataFields count=\"#{data.size}\">"
         data.each do |datum_value|
           # The correct name prefix in ["Sum","Average", etc...]
-          str << "<dataField name='#{(datum_value[:subtotal]||'')} of #{datum_value[:ref]}' fld='#{header_index_of(datum_value[:ref])}' baseField='0' baseItem='0'"
+          str << "<dataField name='#{(datum_value[:subtotal] || '')} of #{datum_value[:ref]}' fld='#{header_index_of(datum_value[:ref])}' baseField='0' baseItem='0'"
           str << " subtotal='#{datum_value[:subtotal]}' " if datum_value[:subtotal]
-          str << "/>"
+          str << '/>'
         end
         str << '</dataFields>'
       end
       # custom pivot table style
       unless style_info.empty?
         str << '<pivotTableStyleInfo'
-        style_info.each do |k,v|
+        style_info.each do |k, v|
           str << ' ' << k.to_s << '="' << v.to_s << '"'
         end
         str << ' />'
@@ -231,7 +224,7 @@ module Axlsx
     # References for header cells
     # @return [Array]
     def header_cell_refs
-      Axlsx::range_to_a(header_range).first
+      Axlsx.range_to_a(header_range).first
     end
 
     # The header cells for the pivot table
@@ -260,7 +253,7 @@ module Axlsx
 
     private
 
-    def pivot_field_for(cell_ref, subtotal=true)
+    def pivot_field_for(cell_ref, subtotal = true)
       if rows.include? cell_ref
         if subtotal
           '<pivotField axis="axisRow" compact="0" outline="0" subtotalTop="0" showAll="0" includeNewItemsInFilter="1"><items count="1"><item t="default"/></items></pivotField>'
