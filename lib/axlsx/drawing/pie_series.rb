@@ -1,12 +1,9 @@
-# encoding: UTF-8
 module Axlsx
-
   # A PieSeries defines the data and labels and explosion for pie charts series.
   # @note The recommended way to manage series is to use Chart#add_series
   # @see Worksheet#add_chart
   # @see Chart#add_series
   class PieSeries < Series
-
     # The data for this series.
     # @return [SimpleTypedList]
     attr_reader :data
@@ -28,19 +25,25 @@ module Axlsx
     # @option options [String] title
     # @option options [Integer] explosion
     # @param [Chart] chart
-    def initialize(chart, options={})
+    def initialize(chart, options = {})
       @explosion = nil
       @colors = []
       super(chart, options)
-      self.labels = AxDataSource.new(:data => options[:labels]) unless options[:labels].nil?
+      self.labels = AxDataSource.new(data: options[:labels]) unless options[:labels].nil?
       self.data = NumDataSource.new(options) unless options[:data].nil?
     end
 
     # @see colors
-    def colors=(v) DataTypeValidator.validate "BarSeries.colors", [Array], v; @colors = v end
+    def colors=(v)
+      DataTypeValidator.validate 'BarSeries.colors', [Array], v
+      @colors = v
+    end
 
     # @see explosion
-    def explosion=(v) Axlsx::validate_unsigned_int(v); @explosion = v; end
+    def explosion=(v)
+      Axlsx.validate_unsigned_int(v)
+      @explosion = v
+    end
 
     # Serializes the object
     # @param [String] str
@@ -64,11 +67,15 @@ module Axlsx
     private
 
     # assigns the data for this series
-    def data=(v) DataTypeValidator.validate "Series.data", [NumDataSource], v; @data = v; end
+    def data=(v)
+      DataTypeValidator.validate 'Series.data', [NumDataSource], v
+      @data = v
+    end
 
     # assigns the labels for this series
-    def labels=(v) DataTypeValidator.validate "Series.labels", [AxDataSource], v; @labels = v; end
-
+    def labels=(v)
+      DataTypeValidator.validate 'Series.labels', [AxDataSource], v
+      @labels = v
+    end
   end
-
 end

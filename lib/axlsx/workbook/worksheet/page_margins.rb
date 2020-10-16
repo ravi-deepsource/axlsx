@@ -9,7 +9,6 @@ module Axlsx
   # @see Worksheet#page_margins
   # @see Worksheet#initialize
   class PageMargins
-
     include Axlsx::OptionsParser
     include Axlsx::SerializedAttributes
 
@@ -20,7 +19,7 @@ module Axlsx
     # @option options [Numeric] top The top margin in inches
     # @option options [Numeric] header The header margin in inches
     # @option options [Numeric] footer The footer margin in inches
-    def initialize(options={})
+    def initialize(options = {})
       # Default values taken from MS Excel for Mac 2011
       @left = @right = DEFAULT_LEFT_RIGHT
       @top = @bottom = DEFAULT_TOP_BOTTOM
@@ -67,23 +66,47 @@ module Axlsx
     # @param [Hash] margins the margins to set (possible keys are :left, :right, :top, :bottom, :header and :footer).
     def set(margins)
       margins.select do |k, v|
-        next unless [:left, :right, :top, :bottom, :header, :footer].include? k
+        next unless %i[left right top bottom header footer].include? k
+
         send("#{k}=", v)
       end
     end
 
     # @see left
-    def left=(v); Axlsx::validate_unsigned_numeric(v); @left = v end
+    def left=(v)
+      Axlsx.validate_unsigned_numeric(v)
+      @left = v
+    end
+
     # @see right
-    def right=(v); Axlsx::validate_unsigned_numeric(v); @right = v end
+    def right=(v)
+      Axlsx.validate_unsigned_numeric(v)
+      @right = v
+    end
+
     # @see top
-    def top=(v); Axlsx::validate_unsigned_numeric(v); @top = v end
+    def top=(v)
+      Axlsx.validate_unsigned_numeric(v)
+      @top = v
+    end
+
     # @see bottom
-    def bottom=(v); Axlsx::validate_unsigned_numeric(v); @bottom = v end
+    def bottom=(v)
+      Axlsx.validate_unsigned_numeric(v)
+      @bottom = v
+    end
+
     # @see header
-    def header=(v); Axlsx::validate_unsigned_numeric(v); @header = v end
+    def header=(v)
+      Axlsx.validate_unsigned_numeric(v)
+      @header = v
+    end
+
     # @see footer
-    def footer=(v); Axlsx::validate_unsigned_numeric(v); @footer = v end
+    def footer=(v)
+      Axlsx.validate_unsigned_numeric(v)
+      @footer = v
+    end
 
     # Serializes the page margins element
     # @param [String] str

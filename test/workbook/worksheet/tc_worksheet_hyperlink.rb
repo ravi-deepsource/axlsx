@@ -5,7 +5,7 @@ class TestWorksheetHyperlink < Test::Unit::TestCase
     p = Axlsx::Package.new
     wb = p.workbook
     @ws = wb.add_worksheet
-    @options = { :location => 'https://github.com/randym/axlsx?foo=1&bar=2', :tooltip => 'axlsx', :ref => 'A1', :display => 'AXSLX', :target => :internal }
+    @options = { location: 'https://github.com/randym/axlsx?foo=1&bar=2', tooltip: 'axlsx', ref: 'A1', display: 'AXSLX', target: :internal }
     @a = @ws.add_hyperlink @options
   end
 
@@ -28,6 +28,7 @@ class TestWorksheetHyperlink < Test::Unit::TestCase
   def test_display
     assert_equal(@options[:display], @a.display)
   end
+
   def test_ref
     assert_equal(@options[:ref], @a.ref)
   end
@@ -38,7 +39,7 @@ class TestWorksheetHyperlink < Test::Unit::TestCase
     assert_equal(doc.xpath("//xmlns:hyperlink[@tooltip='#{@a.tooltip}']").size, 1)
     assert_equal(doc.xpath("//xmlns:hyperlink[@location='#{@a.location}']").size, 1)
     assert_equal(doc.xpath("//xmlns:hyperlink[@display='#{@a.display}']").size, 1)
-    assert_equal(doc.xpath("//xmlns:hyperlink[@r:id]").size, 0)
+    assert_equal(doc.xpath('//xmlns:hyperlink[@r:id]').size, 0)
   end
 
   def test_to_xml_stirng_with_external
@@ -51,5 +52,3 @@ class TestWorksheetHyperlink < Test::Unit::TestCase
     assert_equal(doc.xpath("//xmlns:hyperlink[@r:id='#{@a.relationship.Id}']").size, 1)
   end
 end
-
-

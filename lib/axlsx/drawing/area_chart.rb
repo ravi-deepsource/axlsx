@@ -1,6 +1,4 @@
-# encoding: UTF-8
 module Axlsx
-
   # The AreaChart is a two dimentional line chart (who would have guessed?) that you can add to your worksheet.
   # @example Creating a chart
   #   # This example creates a line in a single sheet.
@@ -20,22 +18,21 @@ module Axlsx
   # @see Series
   # @see Package#serialize
   class AreaChart < Chart
-
     # the category axis
     # @return [CatAxis]
     def cat_axis
       axes[:cat_axis]
     end
-    alias :catAxis :cat_axis
+    alias catAxis cat_axis
 
     # the category axis
     # @return [ValAxis]
     def val_axis
       axes[:val_axis]
     end
-    alias :valAxis :val_axis
+    alias valAxis val_axis
 
-     # must be one of  [:percentStacked, :clustered, :standard, :stacked]
+    # must be one of  [:percentStacked, :clustered, :standard, :stacked]
     # @return [Symbol]
     attr_reader :grouping
 
@@ -45,7 +42,7 @@ module Axlsx
     # @option options [Boolean] show_legend
     # @option options [Symbol] grouping
     # @see Chart
-    def initialize(frame, options={})
+    def initialize(frame, options = {})
       @vary_colors = false
       @grouping = :standard
       super(frame, options)
@@ -55,7 +52,7 @@ module Axlsx
 
     # @see grouping
     def grouping=(v)
-      RestrictionValidator.validate "AreaChart.grouping", [:percentStacked, :standard, :stacked], v
+      RestrictionValidator.validate 'AreaChart.grouping', %i[percentStacked standard stacked], v
       @grouping = v
     end
 
@@ -66,7 +63,7 @@ module Axlsx
     def node_name
       path = self.class.to_s
       if i = path.rindex('::')
-        path = path[(i+2)..-1]
+        path = path[(i + 2)..-1]
       end
       path[0] = path[0].chr.downcase
       path
@@ -77,14 +74,14 @@ module Axlsx
     # @return [String]
     def to_xml_string(str = '')
       super(str) do
-        str << ("<c:" << node_name << ">")
+        str << ('<c:' << node_name << '>')
         str << ('<c:grouping val="' << grouping.to_s << '"/>')
         str << ('<c:varyColors val="' << vary_colors.to_s << '"/>')
         @series.each { |ser| ser.to_xml_string(str) }
         @d_lbls.to_xml_string(str) if @d_lbls
         yield if block_given?
-        axes.to_xml_string(str, :ids => true)
-        str << ("</c:" << node_name << ">")
+        axes.to_xml_string(str, ids: true)
+        str << ('</c:' << node_name << '>')
         axes.to_xml_string(str)
       end
     end
@@ -93,7 +90,7 @@ module Axlsx
     # axis.
     # @return [Axes]
     def axes
-      @axes ||= Axes.new(:cat_axis => CatAxis, :val_axis => ValAxis)
+      @axes ||= Axes.new(cat_axis: CatAxis, val_axis: ValAxis)
     end
   end
 end
